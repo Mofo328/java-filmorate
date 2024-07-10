@@ -21,7 +21,7 @@ public class FilmController {
 
     @PostMapping
     public Film filmAdd(@RequestBody Film filmRequest) {
-       validateFilmInput(filmRequest);
+        validateFilmInput(filmRequest);
         Film film = new Film();
         film.setId(getNextId());
         film.setName(filmRequest.getName());
@@ -69,7 +69,7 @@ public class FilmController {
         return dur;
     }
 
-    private void validateFilmInput(Film film){
+    private void validateFilmInput(Film film) {
         if (film.getName().isEmpty() || (film.getDescription().length() > 200) ||
                 !film.getReleaseDate().isAfter(LocalDate.of(1895, 12, 28))
                 || !convertDurationToSeconds(film.getDuration()).isPositive()) {
