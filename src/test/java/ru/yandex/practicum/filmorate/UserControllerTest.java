@@ -98,7 +98,7 @@ public class UserControllerTest {
     }
 
     @Test
-    public void testLoginCorrect() {
+    public void testLoginUnCorrect() {
         User user = new User();
         user.setEmail("test@example.com");
         user.setLogin("");
@@ -126,12 +126,36 @@ public class UserControllerTest {
     }
 
     @Test
-    public void testCorrectDateOfBirth() {
+    public void testUnCorrectDateOfBirth() {
         User user = new User();
         user.setEmail("test@example.com");
         user.setLogin("test_user");
         user.setName("Test User");
         user.setBirthday(LocalDate.of(2040, 1, 1));
         assertThrows(ValidationException.class, () -> userController.userCreate(user));
+    }
+
+    @Test
+    public void testInvalidUserInputValues() {
+        User newUser = new User();
+        newUser.setEmail(null);
+        newUser.setLogin("test_user");
+        newUser.setName("Test User");
+        newUser.setBirthday(LocalDate.of(2000, 1, 1));
+        assertThrows(ValidationException.class, () -> userController.userCreate(newUser));
+
+        User newUser1 = new User();
+        newUser1.setEmail("test@example.com");
+        newUser1.setLogin(null);
+        newUser1.setName("Test User");
+        newUser1.setBirthday(LocalDate.of(2000, 1, 1));
+        assertThrows(ValidationException.class, () -> userController.userCreate(newUser1));
+
+        User newUser3 = new User();
+        newUser3.setEmail("test@example.com");
+        newUser3.setLogin("test_user");
+        newUser3.setName("Test User");
+        newUser3.setBirthday(null);
+        assertThrows(ValidationException.class, () -> userController.userCreate(newUser3));
     }
 }

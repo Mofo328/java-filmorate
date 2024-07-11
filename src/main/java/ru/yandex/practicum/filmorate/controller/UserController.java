@@ -57,11 +57,15 @@ public class UserController {
     }
 
     private void validateUserInput(User user) {
-        if (user.getEmail().isEmpty() || !user.getEmail().contains("@")) {
+        if (user.getLogin() == null || user.getEmail() == null || user.getBirthday() == null) {
+            log.error("Ошибка в запросе");
+            throw new ValidationException("Переданно нулевое значение");
+        }
+        if (user.getEmail().isBlank() || !user.getEmail().contains("@")) {
             log.error("Ошибка в написании почты");
             throw new ValidationException("Электронная почта не может быть пустой и должна содержать символ @");
         }
-        if (user.getLogin().isEmpty() || user.getLogin().contains(" ")) {
+        if (user.getLogin().isBlank() || user.getLogin().contains(" ")) {
             log.error("Ошибка в написании логина");
             throw new ValidationException("Логин не может быть пустым и содержать пробелы");
         }

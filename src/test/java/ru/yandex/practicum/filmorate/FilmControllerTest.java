@@ -61,7 +61,7 @@ public class FilmControllerTest {
     }
 
     @Test
-    public void testNameCorrect() {
+    public void testInvalidFilmNameAddition() {
         Film filmToAdd = new Film();
         filmToAdd.setDescription("Test Description");
         filmToAdd.setReleaseDate(LocalDate.now());
@@ -70,7 +70,7 @@ public class FilmControllerTest {
     }
 
     @Test
-    public void testDescriptionCorrect() {
+    public void testDescriptionUnCorrect() {
         Film filmToAdd = new Film();
         String description = "Hello world ";
         while (description.length() < 200) {
@@ -83,7 +83,7 @@ public class FilmControllerTest {
     }
 
     @Test
-    public void testDateOfReleaseIsCorrect() {
+    public void testDateOfReleaseUnCorrect() {
         Film filmToAdd = new Film();
         filmToAdd.setDescription("Test Description");
         filmToAdd.setReleaseDate(LocalDate.of(1894, 12, 28));
@@ -92,11 +92,32 @@ public class FilmControllerTest {
     }
 
     @Test
-    public void testDurationMustBePositiveNumber() {
+    public void testNegativeDurationNotAllowed() {
         Film filmToAdd = new Film();
         filmToAdd.setDescription("Test Description");
         filmToAdd.setReleaseDate(LocalDate.of(1894, 12, 28));
         filmToAdd.setDuration(-100);
         assertThrows(ValidationException.class, () -> filmController.filmAdd(filmToAdd));
+    }
+
+    @Test
+    public void testInvalidFilmInputValues() {
+        Film filmToAdd = new Film();
+        filmToAdd.setDescription(null);
+        filmToAdd.setReleaseDate(LocalDate.now());
+        filmToAdd.setDuration(120);
+        assertThrows(ValidationException.class, () -> filmController.filmAdd(filmToAdd));
+
+        Film filmToAdd2 = new Film();
+        filmToAdd2.setDescription("Test Description");
+        filmToAdd2.setReleaseDate(null);
+        filmToAdd2.setDuration(120);
+        assertThrows(ValidationException.class, () -> filmController.filmAdd(filmToAdd2));
+
+        Film filmToAdd3 = new Film();
+        filmToAdd3.setDescription("Test Description");
+        filmToAdd3.setReleaseDate(LocalDate.now());
+        filmToAdd3.setDuration(null);
+        assertThrows(ValidationException.class, () -> filmController.filmAdd(filmToAdd3));
     }
 }

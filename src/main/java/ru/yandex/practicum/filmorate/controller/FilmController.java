@@ -61,20 +61,20 @@ public class FilmController {
     }
 
     private void validateFilmInput(Film film) {
-        if (film.getName() == null || film.getName().trim().isEmpty()) {
+        if (film.getName() == null || film.getName().isBlank()) {
             log.error("Ошибка в названии фильма!");
             throw new ValidationException("Название фильма не может быть пустым");
         }
-        if (film.getDescription() != null && film.getDescription().length() > 200) {
+        if (film.getDescription() == null || film.getDescription().length() > 200) {
             log.error("Превышена длина описания!");
             throw new ValidationException("Максимальная длина описания — 200 символов");
         }
         LocalDate minReleaseDate = LocalDate.of(1895, 12, 28);
-        if (film.getReleaseDate() != null && film.getReleaseDate().isBefore(minReleaseDate)) {
+        if (film.getReleaseDate() == null || film.getReleaseDate().isBefore(minReleaseDate)) {
             log.error("Ошибка в дате релиза!");
             throw new ValidationException("Дата релиза не может быть раньше 28 декабря 1895 года");
         }
-        if (film.getDuration() <= 0) {
+        if (film.getDuration() == null || film.getDuration() <= 0) {
             log.error("Продолжительность отрицательная!");
             throw new ValidationException("Продолжительность фильма должна быть положительным числом");
         }
