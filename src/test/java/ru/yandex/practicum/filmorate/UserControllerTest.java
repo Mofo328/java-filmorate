@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import ru.yandex.practicum.filmorate.controller.UserController;
+import ru.yandex.practicum.filmorate.exeption.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.time.LocalDate;
@@ -15,6 +16,7 @@ import static org.junit.Assert.assertNotNull;
 
 @SpringBootTest
 public class UserControllerTest {
+
 
     @Autowired
     private UserController userController;
@@ -45,7 +47,7 @@ public class UserControllerTest {
         user.setLogin("test_user");
         user.setName("Test User");
         user.setBirthday(LocalDate.of(2000, 1, 1));
-        User createdUser = userController.userCreate(user);
+        userController.userCreate(user);
 
         User newUser = new User();
         newUser.setId(1L);
@@ -71,9 +73,65 @@ public class UserControllerTest {
         newUser.setLogin("test_user");
         newUser.setName("Test User");
         newUser.setBirthday(LocalDate.of(2000, 1, 1));
-        User createdUser = userController.userCreate(newUser);
+        userController.userCreate(newUser);
         Collection<User> users = userController.allUsers();
         assertNotNull(users);
         assertFalse(users.isEmpty());
+    }
+
+    @Test
+    public void testEmailIsCorrect() {
+        User user = new User();
+        user.setEmail("testexample.com");
+        user.setLogin("test_user");
+        user.setName("Test User");
+        user.setBirthday(LocalDate.of(2000, 1, 1));
+
+        User user2 = new User();
+        user2.setEmail("");
+        user2.setLogin("test_user");
+        user2.setName("Test User");
+        user2.setBirthday(LocalDate.of(2000, 1, 1));
+
+        assertThrows(ValidationException.class, () -> userController.userCreate(user));
+        assertThrows(ValidationException.class, () -> userController.userCreate(user2));
+    }
+
+    @Test
+    public void testLoginCorrect() {
+        User user = new User();
+        user.setEmail("test@example.com");
+        user.setLogin("");
+        user.setName("Test User");
+        user.setBirthday(LocalDate.of(2000, 1, 1));
+
+        User user2 = new User();
+        user2.setEmail("test@example.com");
+        user2.setLogin("test user");
+        user2.setName("Test User");
+        user2.setBirthday(LocalDate.of(2000, 1, 1));
+
+        assertThrows(ValidationException.class, () -> userController.userCreate(user));
+        assertThrows(ValidationException.class, () -> userController.userCreate(user2));
+    }
+
+    @Test
+    public void testNameCorrect() {
+        User user = new User();
+        user.setEmail("test@example.com");
+        user.setLogin("test_user");
+        user.setBirthday(LocalDate.of(2000, 1, 1));
+        User testUser = userController.userCreate(user);
+        assertEquals(testUser.getName(), testUser.getLogin());
+    }
+
+    @Test
+    public void testCorrectDateOfBirth() {
+        User user = new User();
+        user.setEmail("test@example.com");
+        user.setLogin("test_user");
+        user.setName("Test User");
+        user.setBirthday(LocalDate.of(2040, 1, 1));
+        assertThrows(ValidationException.class, () -> userController.userCreate(user));
     }
 }

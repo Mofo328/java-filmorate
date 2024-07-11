@@ -7,7 +7,6 @@ import ru.yandex.practicum.filmorate.exeption.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 
 
-import java.time.Duration;
 import java.time.LocalDate;
 import java.util.Collection;
 import java.util.HashMap;
@@ -22,12 +21,7 @@ public class FilmController {
     @PostMapping
     public Film filmAdd(@RequestBody Film filmRequest) {
         validateFilmInput(filmRequest);
-        Film film = new Film();
-        film.setId(getNextId());
-        film.setName(filmRequest.getName());
-        film.setDescription(filmRequest.getDescription());
-        film.setReleaseDate(filmRequest.getReleaseDate());
-        film.setDuration(filmRequest.getDuration());
+        Film film = setFilm(filmRequest);
         films.put(film.getId(), film);
         log.info("Фильм добавлен");
         return film;
@@ -35,24 +29,52 @@ public class FilmController {
 
     @PutMapping
     public Film filmUpdate(@RequestBody Film newFilm) {
-        Film oldFilm;
         if (newFilm.getId() == null || !films.containsKey(newFilm.getId())) {
             log.error("Фильм с id " + newFilm.getId() + " не найден");
             throw new ConditionsNotMetException("id не найден");
         }
-        oldFilm = films.get(newFilm.getId());
+        Film oldFilm = setFilm(newFilm);
         validateFilmInput(newFilm);
-        oldFilm.setName(newFilm.getName());
-        oldFilm.setDescription(newFilm.getDescription());
-        oldFilm.setReleaseDate(newFilm.getReleaseDate());
-        oldFilm.setDuration(newFilm.getDuration());
         log.info("Фильм обнавлен");
         return oldFilm;
     }
 
     @GetMapping
     public Collection<Film> allFilms() {
+        log.info("Все фильмы");
         return films.values();
+    }
+
+    private Film setFilm(Film filmRequest) {
+        Film film = new Film();
+        if (films.get(filmRequest.getId()) == null) {
+            film.setId(getNextId());
+        }
+        film.setName(filmRequest.getName());
+        film.setDescription(filmRequest.getDescription());
+        film.setReleaseDate(filmRequest.getReleaseDate());
+        film.setDuration(filmRequest.getDuration());
+        return film;
+    }
+
+    private void validateFilmInput(Film film) {
+        if (film.getName() == null || film.getName().trim().isEmpty()) {
+            log.error("Ошибка в названии фильма!");
+            throw new ValidationException("Название фильма не может быть пустым");
+        }
+        if (film.getDescription() != null && film.getDescription().length() > 200) {
+            log.error("Превышена длина описания!");
+            throw new ValidationException("Максимальная длина описания — 200 символов");
+        }
+        LocalDate minReleaseDate = LocalDate.of(1895, 12, 28);
+        if (film.getReleaseDate() != null && film.getReleaseDate().isBefore(minReleaseDate)) {
+            log.error("Ошибка в дате релиза!");
+            throw new ValidationException("Дата релиза не может быть раньше 28 декабря 1895 года");
+        }
+        if (film.getDuration() <= 0) {
+            log.error("Продолжительность отрицательная!");
+            throw new ValidationException("Продолжительность фильма должна быть положительным числом");
+        }
     }
 
     private long getNextId() {
@@ -62,19 +84,5 @@ public class FilmController {
                 .max()
                 .orElse(0);
         return ++currentMaxId;
-    }
-
-    private Duration convertDurationToSeconds(int duration) {
-        Duration dur = Duration.ofSeconds(duration);
-        return dur;
-    }
-
-    private void validateFilmInput(Film film) {
-        if (film.getName().isEmpty() || (film.getDescription().length() > 200) ||
-                !film.getReleaseDate().isAfter(LocalDate.of(1895, 12, 28))
-                || !convertDurationToSeconds(film.getDuration()).isPositive()) {
-            log.error("Фильм не соответсвует условиям");
-            throw new ValidationException("Валидация не пройдена.");
-        }
     }
 }

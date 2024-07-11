@@ -21,64 +21,53 @@ public class UserController {
     @PostMapping
     public User userCreate(@RequestBody User newUser) {
         validateUserInput(newUser);
+        newUser.setId(getNextId());
         if (newUser.getName() == null) {
-            User userNoName = new User();
-            userNoName.setId(getNextId());
-            userNoName.setEmail(newUser.getEmail());
-            userNoName.setLogin(newUser.getLogin());
-            userNoName.setName(newUser.getLogin());
-            userNoName.setBirthday(newUser.getBirthday());
-            users.put(userNoName.getId(), userNoName);
-            log.info("Пользователь добавлен");
-            return userNoName;
+            newUser.setName(newUser.getLogin());
         }
-        User user = new User();
-        user.setId(getNextId());
-        user.setEmail(newUser.getEmail());
-        user.setLogin(newUser.getLogin());
-        user.setName(newUser.getName());
-        user.setBirthday(newUser.getBirthday());
-        users.put(user.getId(), user);
+        users.put(newUser.getId(), newUser);
         log.info("Пользователь добавлен");
-        return user;
+        return newUser;
     }
 
 
     @PutMapping
     public User updateUser(@RequestBody User newUser) {
-        User oldUser;
         if (newUser.getId() == null || !users.containsKey(newUser.getId())) {
             log.error("Пользователь с id " + newUser.getId() + " не найден");
             throw new ConditionsNotMetException("id не найден");
         }
-        oldUser = users.get(newUser.getId());
+        User oldUser = users.get(newUser.getId());
         validateUserInput(newUser);
-        if (newUser.getName().isEmpty()) {
-            oldUser.setEmail(newUser.getEmail());
-            oldUser.setLogin(newUser.getLogin());
-            oldUser.setBirthday(newUser.getBirthday());
-            log.info("Пользователь обнавлен");
-            return oldUser;
-        }
         oldUser.setEmail(newUser.getEmail());
         oldUser.setLogin(newUser.getLogin());
         oldUser.setName(newUser.getName());
         oldUser.setBirthday(newUser.getBirthday());
+        if (oldUser.getName() == null) {
+            oldUser.setName(oldUser.getLogin());
+        }
         log.info("Пользователь обнавлен");
         return oldUser;
     }
 
     @GetMapping
     public Collection<User> allUsers() {
+        log.info("Все пользователи");
         return users.values();
     }
 
-    private void validateUserInput(User newUser) {
-        if (newUser.getEmail().isEmpty() || !newUser.getEmail().contains("@")
-                || newUser.getLogin().isEmpty() || newUser.getLogin().contains(" ")
-                || newUser.getBirthday().isAfter(LocalDate.now())) {
-            log.error("Пользователь не соответсвует условиям");
-            throw new ValidationException("Валидация не пройдена");
+    private void validateUserInput(User user) {
+        if (user.getEmail().isEmpty() || !user.getEmail().contains("@")) {
+            log.error("Ошибка в написании почты");
+            throw new ValidationException("Электронная почта не может быть пустой и должна содержать символ @");
+        }
+        if (user.getLogin().isEmpty() || user.getLogin().contains(" ")) {
+            log.error("Ошибка в написании логина");
+            throw new ValidationException("Логин не может быть пустым и содержать пробелы");
+        }
+        if (user.getBirthday().isAfter(LocalDate.now())) {
+            log.error("Ошибка в дате рождения");
+            throw new ValidationException("Дата рождения не может быть в будущем");
         }
     }
 
