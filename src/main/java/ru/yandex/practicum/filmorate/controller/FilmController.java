@@ -50,6 +50,9 @@ public class FilmController {
         if (films.get(filmRequest.getId()) == null) {
             film.setId(getNextId());
         }
+        if (films.get(filmRequest.getId()) != null) {
+            film.setId(filmRequest.getId());
+        }
         film.setName(filmRequest.getName());
         film.setDescription(filmRequest.getDescription());
         film.setReleaseDate(filmRequest.getReleaseDate());
