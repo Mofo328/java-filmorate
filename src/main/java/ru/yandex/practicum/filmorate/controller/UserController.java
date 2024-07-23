@@ -5,7 +5,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.UserService;
-import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import java.util.*;
 
@@ -14,13 +13,10 @@ import java.util.*;
 @Slf4j
 public class UserController {
 
-    private final UserStorage userStorage;
-
     private final UserService userService;
 
     @Autowired
-    public UserController(UserStorage userStorage, UserService userService) {
-        this.userStorage = userStorage;
+    public UserController(UserService userService) {
         this.userService = userService;
     }
 
@@ -46,21 +42,21 @@ public class UserController {
 
     @PostMapping
     public User userCreate(@RequestBody User newUser) {
-        return userStorage.userCreate(newUser);
+        return userService.userCreate(newUser);
     }
 
     @PutMapping
     public User userUpdate(@RequestBody User newUser) {
-        return userStorage.userUpdate(newUser);
+        return userService.userUpdate(newUser);
     }
 
     @GetMapping
     public Collection<User> allUsers() {
-        return userStorage.allUsers();
+        return userService.allUsers();
     }
 
     @DeleteMapping(value = {"{userId}"})
     public void userDelete(@PathVariable("userId") Long id) {
-        userStorage.userDelete(id);
+        userService.userDelete(id);
     }
 }

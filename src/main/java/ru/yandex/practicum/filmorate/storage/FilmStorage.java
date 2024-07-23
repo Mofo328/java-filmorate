@@ -10,7 +10,6 @@ public interface FilmStorage {
 
     Film filmUpdate(Film film);
 
-
     Collection<Film> allFilms();
 
     void filmDelete(Long id);

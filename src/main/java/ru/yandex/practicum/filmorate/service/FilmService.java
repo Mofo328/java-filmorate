@@ -12,7 +12,6 @@ import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import java.util.Collection;
 import java.util.Comparator;
-import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -29,19 +28,31 @@ public class FilmService {
         this.userStorage = userStorage;
     }
 
+    public Film filmAdd(Film filmRequest) {
+        return filmStorage.filmAdd(filmRequest);
+    }
+
+    public Collection<Film> allFilms() {
+        return filmStorage.allFilms();
+    }
+
+    public Film filmUpdate(Film newFilm) {
+        return filmStorage.filmUpdate(newFilm);
+    }
+
+    public void filmDelete(Long id) {
+        filmStorage.filmDelete(id);
+    }
+
     public void filmLike(Long filmId, Long userId) {
         Film film = filmStorage.getFilm(filmId);
         Set<Long> likes = film.getLikes();
-        if (likes == null) {
-            likes = new HashSet<>();
-        }
         if (likes.contains(userId)) {
             log.error("Пользователь {} уже поставил лайк фильму {}", userId, filmId);
             throw new ValidationException("Пользователь уже ставил лайк этому фильму");
         }
-        likes.add(userId);
-        film.setLikes(likes);
-
+        User user = userStorage.getUser(userId);
+        likes.add(user.getId());
         log.info("Фильму {} был поставлен лайк от пользователя {}", filmId, userId);
     }
 
@@ -53,7 +64,6 @@ public class FilmService {
             throw new ConditionsNotMetException("Пользователь " + userId + " Не ставил лайк этому фильму");
         }
         log.info("У фильма {} был удален лайк от пользователя {}", filmId, userId);
-        film.setLikes(likes);
     }
 
     public Collection<Film> popularFilms(Long count) {

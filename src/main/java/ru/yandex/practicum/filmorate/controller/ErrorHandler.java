@@ -12,6 +12,7 @@ import ru.yandex.practicum.filmorate.exeption.ValidationException;
 public class ErrorHandler {
     @Getter
     public static class ErrorResponse {
+
         private final String error;
 
         public ErrorResponse(String error) {
