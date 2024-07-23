@@ -14,9 +14,9 @@ import java.util.*;
 @Slf4j
 public class UserController {
 
-    final private UserStorage userStorage;
+    private final UserStorage userStorage;
 
-    final private UserService userService;
+    private final UserService userService;
 
     @Autowired
     public UserController(UserStorage userStorage, UserService userService) {
