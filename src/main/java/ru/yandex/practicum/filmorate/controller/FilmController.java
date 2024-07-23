@@ -15,9 +15,9 @@ import java.util.Collection;
 @Slf4j
 public class FilmController {
 
-    final private FilmStorage filmStorage;
+    private final FilmStorage filmStorage;
 
-    final private FilmService filmService;
+    private final FilmService filmService;
 
     @Autowired
     public FilmController(FilmStorage filmStorage, FilmService filmService) {
