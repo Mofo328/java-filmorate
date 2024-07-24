@@ -75,7 +75,7 @@ class UserServiceTest {
         //проверяю добивился ли в друзья к пользователям 2,3- первый пользователь
         assertTrue(user2.getFriends().contains(user));
         assertTrue(user3.getFriends().contains(user));
-        List <User> expected = List.of(user2,user3);
+        List<User> expected = List.of(user2, user3);
         assertEquals(expected, userService.allUserFriends(user.getId()));
         //проверяю удаление пользователя
         userService.deleteFriend(user.getId(), user2.getId());
@@ -93,7 +93,7 @@ class UserServiceTest {
         userService.addToFriend(user5.getId(), user2.getId());
         userService.addToFriend(user5.getId(), user3.getId());
         userService.addToFriend(user5.getId(), user.getId());
-        List<User> expected = List.of(user5,user4);
+        List<User> expected = List.of(user5, user4);
         assertEquals(expected, userService.commonFriends(user.getId(), user3.getId()));
     }
 }
