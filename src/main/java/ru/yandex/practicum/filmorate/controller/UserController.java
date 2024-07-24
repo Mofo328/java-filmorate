@@ -2,6 +2,7 @@ package ru.yandex.practicum.filmorate.controller;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.UserService;
@@ -31,12 +32,12 @@ public class UserController {
     }
 
     @GetMapping("{userId}/friends")
-    public Set<Long> allUserFriends(@PathVariable Long userId) {
+    public List<User> allUserFriends(@PathVariable Long userId) {
         return userService.allUserFriends(userId);
     }
 
     @GetMapping("{userId}/friends/common/{otherUserId}")
-    public Set<Long> commonFriends(@PathVariable Long userId, @PathVariable Long otherUserId) {
+    public List<User> commonFriends(@PathVariable Long userId, @PathVariable Long otherUserId) {
         return userService.commonFriends(userId, otherUserId);
     }
 
@@ -56,6 +57,7 @@ public class UserController {
     }
 
     @DeleteMapping(value = {"{userId}"})
+    @ResponseStatus(HttpStatus.OK)
     public void userDelete(@PathVariable("userId") Long id) {
         userService.userDelete(id);
     }

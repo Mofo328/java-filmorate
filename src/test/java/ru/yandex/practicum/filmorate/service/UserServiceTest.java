@@ -9,7 +9,7 @@ import ru.yandex.practicum.filmorate.storage.InMemoryUserStorage;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import java.time.LocalDate;
-import java.util.Set;
+import java.util.List;
 
 import static org.junit.Assert.assertThrows;
 import static org.junit.jupiter.api.Assertions.*;
@@ -73,9 +73,10 @@ class UserServiceTest {
         assertThrows(ValidationException.class, () -> userService.addToFriend(user.getId(), user2.getId()));
         userService.addToFriend(user.getId(), user3.getId());
         //проверяю добивился ли в друзья к пользователям 2,3- первый пользователь
-        assertTrue(user2.getFriends().contains(user.getId()));
-        assertTrue(user3.getFriends().contains(user.getId()));
-        assertEquals(2, userService.allUserFriends(user.getId()).size());
+        assertTrue(user2.getFriends().contains(user));
+        assertTrue(user3.getFriends().contains(user));
+        List <User> expected = List.of(user2,user3);
+        assertEquals(expected, userService.allUserFriends(user.getId()));
         //проверяю удаление пользователя
         userService.deleteFriend(user.getId(), user2.getId());
         //проверяю повторное удаление пользователя
@@ -92,7 +93,7 @@ class UserServiceTest {
         userService.addToFriend(user5.getId(), user2.getId());
         userService.addToFriend(user5.getId(), user3.getId());
         userService.addToFriend(user5.getId(), user.getId());
-        Set<Long> expected = Set.of(user5.getId(), user4.getId());
+        List<User> expected = List.of(user5,user4);
         assertEquals(expected, userService.commonFriends(user.getId(), user3.getId()));
     }
 }

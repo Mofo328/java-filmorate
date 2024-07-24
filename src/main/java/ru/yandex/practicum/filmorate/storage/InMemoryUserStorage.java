@@ -17,6 +17,8 @@ public class InMemoryUserStorage implements UserStorage {
 
     private final Map<Long, User> users = new HashMap<>();
 
+//    private final Map<Long,User>
+
     private long currentMaxId;
 
     @Override
@@ -24,9 +26,6 @@ public class InMemoryUserStorage implements UserStorage {
         log.info("Пришел Post запрос /users с телом {}", newUser);
         validateUserInput(newUser);
         newUser.setId(getNextId());
-        if (newUser.getName() == null) {
-            newUser.setName(newUser.getLogin());
-        }
         users.put(newUser.getId(), newUser);
         log.info("Отправлен ответ Post /users с телом {}", newUser);
         return newUser;
@@ -79,6 +78,9 @@ public class InMemoryUserStorage implements UserStorage {
         if (user.getLogin() == null || user.getEmail() == null || user.getBirthday() == null) {
             log.error("Ошибка в запросе");
             throw new ValidationException("Переданно нулевое значение");
+        }
+        if (user.getName() == null) {
+            user.setName(user.getLogin());
         }
         if (user.getEmail().isBlank() || !user.getEmail().contains("@")) {
             log.error("Ошибка в написании почты");

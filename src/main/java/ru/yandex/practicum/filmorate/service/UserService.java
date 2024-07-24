@@ -3,14 +3,11 @@ package ru.yandex.practicum.filmorate.service;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import ru.yandex.practicum.filmorate.exeption.ConditionsNotMetException;
 import ru.yandex.practicum.filmorate.exeption.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 @Service
 @Slf4j
@@ -42,36 +39,41 @@ public class UserService {
     public void addToFriend(Long userId, Long otherUserId) {
         User user = userStorage.getUser(userId);
         User otherUser = userStorage.getUser(otherUserId);
-        Set<Long> userFriends = user.getFriends();
-        Set<Long> otherUserFriends = otherUser.getFriends();
-        if (userFriends.contains(otherUserId)) {
-            log.error("Пользователь {} уже есть в друзьях у пользователя {}", userId, otherUserId);
-            throw new ValidationException("Пользователь уже в друзьях");
+        if (user.getFriends().contains(otherUser)) {
+            log.error("Ошибка при добавлении друга: Пользователи {} и {} уже являются друзьями.", userId, otherUserId);
+            throw new ValidationException("Пользователи уже в друзьях");
         }
-        userFriends.add(otherUserId);
-        otherUserFriends.add(userId);
+        user.getFriends().add(userStorage.getUser(otherUserId));
+        otherUser.getFriends().add(userStorage.getUser(userId));
         log.info("Пользователь {} добавил в друзья пользователя {}", userId, otherUserId);
     }
 
     public void deleteFriend(Long userId, Long friendId) {
         User user = userStorage.getUser(userId);
-        Set<Long> friends = user.getFriends();
-        if (!friends.remove(friendId)) {
-            throw new ConditionsNotMetException("У пользователя нет друга под id " + friendId);
+        User friend = userStorage.getUser(friendId);
+        if (user == null || friend == null) {
+            log.error("Пользователь с ID {} не найден", userId);
         }
-        log.info("Пользователь {} удалил  пользователя {}", userId, friendId);
+
+        if (user.getFriends().remove(friend) && friend.getFriends().remove(user)) {
+            log.info("Пользователь {} успешно удалил пользователя {}", userId, friendId);
+        } else {
+            log.warn("Пользователь {} не имел друга с ID {}", userId, friendId);
+        }
     }
 
-    public Set<Long> allUserFriends(Long userId) {
+    public List<User> allUserFriends(Long userId) {
         User user = userStorage.getUser(userId);
-        return user.getFriends();
+        Set<User> userFriendsSet = user.getFriends();
+        return new ArrayList<>(userFriendsSet);
     }
 
-    public Set<Long> commonFriends(Long userId, Long otherUserId) {
-        Set<Long> userFriends = allUserFriends(userId);
-        Set<Long> otherUserFriends = allUserFriends(otherUserId);
-        Set<Long> commonFriends = new HashSet<>(userFriends);
+    public List<User> commonFriends(Long userId, Long otherUserId) {
+        List<User> userFriends = allUserFriends(userId);
+        List<User> otherUserFriends = allUserFriends(otherUserId);
+        List<User> commonFriends = new ArrayList<>(userFriends);
         commonFriends.retainAll(otherUserFriends);
+
         return commonFriends;
     }
 }
