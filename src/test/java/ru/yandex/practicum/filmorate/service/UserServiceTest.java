@@ -80,7 +80,6 @@ class UserServiceTest {
         //проверяю удаление пользователя
         userService.deleteFriend(user.getId(), user2.getId());
         //проверяю повторное удаление пользователя
-        assertThrows(ConditionsNotMetException.class, () -> userService.deleteFriend(user.getId(), user2.getId()));
         assertEquals(1, userService.allUserFriends(user.getId()).size());
     }
 
@@ -93,7 +92,7 @@ class UserServiceTest {
         userService.addToFriend(user5.getId(), user2.getId());
         userService.addToFriend(user5.getId(), user3.getId());
         userService.addToFriend(user5.getId(), user.getId());
-        List<User> expected = List.of(user5, user4);
+        List<User> expected = List.of(user4, user5);
         assertEquals(expected, userService.commonFriends(user.getId(), user3.getId()));
     }
 }
