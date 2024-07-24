@@ -2,7 +2,7 @@ package ru.yandex.practicum.filmorate.service;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
+import ru.yandex.practicum.filmorate.exeption.ConditionsNotMetException;
 import ru.yandex.practicum.filmorate.exeption.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.InMemoryUserStorage;
@@ -14,7 +14,6 @@ import java.util.List;
 import static org.junit.Assert.assertThrows;
 import static org.junit.jupiter.api.Assertions.*;
 
-@SpringBootTest
 class UserServiceTest {
     private final UserStorage userStorage = new InMemoryUserStorage();
 
@@ -76,6 +75,8 @@ class UserServiceTest {
         //проверяю добивился ли в друзья к пользователям 2,3- первый пользователь
         assertTrue(user2.getFriends().contains(user));
         assertTrue(user3.getFriends().contains(user));
+        List<User> expected = List.of(user2, user3);
+        assertEquals(expected, userService.allUserFriends(user.getId()));
         //проверяю удаление пользователя
         userService.deleteFriend(user.getId(), user2.getId());
         //проверяю повторное удаление пользователя
