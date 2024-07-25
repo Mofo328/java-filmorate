@@ -10,9 +10,7 @@ import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -46,7 +44,7 @@ public class FilmService {
 
     public void filmLike(Long filmId, Long userId) {
         Film film = filmStorage.getFilm(filmId);
-        Set<Long> likes = film.getLikes();
+        Set<Long> likes = filmStorage.getLikes().get(film.getId());
         if (likes.contains(userId)) {
             log.error("Пользователь {} уже поставил лайк фильму {}", userId, filmId);
             throw new ValidationException("Пользователь уже ставил лайк этому фильму");
@@ -58,7 +56,8 @@ public class FilmService {
 
     public void filmLikeRemove(Long filmId, Long userId) {
         Film film = filmStorage.getFilm(filmId);
-        Set<Long> likes = film.getLikes();
+        Set<Long> likes = filmStorage.getLikes().get(filmId);
+        ;
         User user = userStorage.getUser(userId);
         if (!likes.remove(user.getId())) {
             throw new ConditionsNotMetException("Пользователь " + userId + " Не ставил лайк этому фильму");
@@ -69,7 +68,7 @@ public class FilmService {
     public Collection<Film> popularFilms(Long count) {
         log.info("Было возращено {} популярных фильма", count);
         return filmStorage.allFilms().stream()
-                .sorted(Comparator.comparingInt(film -> film.getLikes().size()))
+                .sorted(Comparator.comparingInt(film -> filmStorage.getLikes().get(film.getId()).size()))
                 .limit(count)
                 .collect(Collectors.toList()).reversed();
     }

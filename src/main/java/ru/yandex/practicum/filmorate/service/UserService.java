@@ -39,23 +39,19 @@ public class UserService {
     public void addToFriend(Long userId, Long otherUserId) {
         User user = userStorage.getUser(userId);
         User otherUser = userStorage.getUser(otherUserId);
-        if (user.getFriends().contains(otherUser)) {
+        if (userStorage.getFriends().get(user.getId()).contains(otherUser)) {
             log.error("Ошибка при добавлении друга: Пользователи {} и {} уже являются друзьями.", userId, otherUserId);
             throw new ValidationException("Пользователи уже в друзьях");
         }
-        user.getFriends().add(userStorage.getUser(otherUserId));
-        otherUser.getFriends().add(userStorage.getUser(userId));
+        userStorage.getFriends().get(user.getId()).add(userStorage.getUser(otherUserId));
+        userStorage.getFriends().get(otherUser.getId()).add(userStorage.getUser(userId));
         log.info("Пользователь {} добавил в друзья пользователя {}", userId, otherUserId);
     }
 
     public void deleteFriend(Long userId, Long friendId) {
         User user = userStorage.getUser(userId);
         User friend = userStorage.getUser(friendId);
-        if (user == null || friend == null) {
-            log.error("Пользователь с ID {} не найден", userId);
-        }
-
-        if (user.getFriends().remove(friend) && friend.getFriends().remove(user)) {
+        if (userStorage.getFriends().get(user.getId()).remove(friend) && userStorage.getFriends().get(friend.getId()).remove(user)) {
             log.info("Пользователь {} успешно удалил пользователя {}", userId, friendId);
         } else {
             log.warn("Пользователь {} не имел друга с ID {}", userId, friendId);
@@ -64,7 +60,7 @@ public class UserService {
 
     public List<User> allUserFriends(Long userId) {
         User user = userStorage.getUser(userId);
-        Set<User> userFriendsSet = user.getFriends();
+        Set<User> userFriendsSet = userStorage.getFriends().get(user.getId());
         return new ArrayList<>(userFriendsSet);
     }
 

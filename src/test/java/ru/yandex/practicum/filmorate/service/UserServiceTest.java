@@ -72,8 +72,8 @@ class UserServiceTest {
         assertThrows(ValidationException.class, () -> userService.addToFriend(user.getId(), user2.getId()));
         userService.addToFriend(user.getId(), user3.getId());
         //проверяю добивился ли в друзья к пользователям 2,3- первый пользователь
-        assertTrue(user2.getFriends().contains(user));
-        assertTrue(user3.getFriends().contains(user));
+        assertTrue(userStorage.getFriends().get(user2.getId()).contains(user));
+        assertTrue(userStorage.getFriends().get(user3.getId()).contains(user));
         List<User> expected = List.of(user2, user3);
         assertEquals(expected, userService.allUserFriends(user.getId()));
         //проверяю удаление пользователя

@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.storage;
 
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exeption.ConditionsNotMetException;
@@ -7,9 +8,7 @@ import ru.yandex.practicum.filmorate.exeption.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.time.LocalDate;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 @Component
 @Slf4j
@@ -17,8 +16,8 @@ public class InMemoryUserStorage implements UserStorage {
 
     private final Map<Long, User> users = new HashMap<>();
 
-//    private final Map<Long,User>
-
+    @Getter
+    private final Map<Long, Set<User>> friends = new HashMap<>();
     private long currentMaxId;
 
     @Override
@@ -27,6 +26,7 @@ public class InMemoryUserStorage implements UserStorage {
         validateUserInput(newUser);
         newUser.setId(getNextId());
         users.put(newUser.getId(), newUser);
+        friends.put(newUser.getId(),new HashSet<>());
         log.info("Отправлен ответ Post /users с телом {}", newUser);
         return newUser;
     }
@@ -53,6 +53,8 @@ public class InMemoryUserStorage implements UserStorage {
         if (oldUser.getName() == null) {
             oldUser.setName(oldUser.getLogin());
         }
+        users.remove(newUser.getId());
+        users.put(oldUser.getId(), oldUser);
         log.info("Отправлен ответ Put /users с телом {}", oldUser);
         return oldUser;
     }

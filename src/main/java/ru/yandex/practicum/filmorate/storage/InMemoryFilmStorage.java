@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.storage;
 
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exeption.ConditionsNotMetException;
@@ -7,15 +8,16 @@ import ru.yandex.practicum.filmorate.exeption.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 
 import java.time.LocalDate;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 @Component
 @Slf4j
 public class InMemoryFilmStorage implements FilmStorage {
 
     private final Map<Long, Film> films = new HashMap<>();
+
+    @Getter
+    private final Map<Long,Set<Long>> likes = new HashMap<>();
 
     private long currentId;
 
@@ -25,6 +27,7 @@ public class InMemoryFilmStorage implements FilmStorage {
         validateFilmInput(filmRequest);
         Film film = setFilm(filmRequest);
         films.put(film.getId(), film);
+        likes.put(film.getId(), new HashSet<>());
         log.info("Отправлен ответ Post / films с телом {}", filmRequest);
         return film;
     }
@@ -44,6 +47,8 @@ public class InMemoryFilmStorage implements FilmStorage {
         }
         Film oldFilm = setFilm(newFilm);
         validateFilmInput(newFilm);
+        films.remove(newFilm.getId());
+        films.put(oldFilm.getId(), oldFilm);
         log.info("Отправлен ответ Put / films с телом {}", oldFilm);
         return oldFilm;
     }
