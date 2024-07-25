@@ -97,11 +97,11 @@ class FilmServiceTest {
         filmService.filmLike(addedFilm.getId(), user.getId());
         assertThrows(ValidationException.class, () -> filmService.filmLike(addedFilm.getId(), user.getId()));
         filmService.filmLike(addedFilm.getId(), user2.getId());
-        assertEquals(2, addedFilm.getLikes().size());
+        assertEquals(2, filmStorage.getLikes().get(addedFilm.getId()).size());
         filmService.filmLikeRemove(addedFilm.getId(), user.getId());
         assertThrows(ConditionsNotMetException.class, () -> filmService.filmLikeRemove(addedFilm.getId(), user.getId()));
         filmService.filmLikeRemove(addedFilm.getId(), user2.getId());
-        assertEquals(0, addedFilm.getLikes().size());
+        assertEquals(0, filmStorage.getLikes().get(addedFilm.getId()).size());
     }
 
     @Test
@@ -118,8 +118,8 @@ class FilmServiceTest {
         filmService.filmLike(addedFilm.getId(), user3.getId());
         filmService.filmLike(addedFilm2.getId(), user4.getId());
         filmService.filmLike(addedFilm2.getId(), user5.getId());
-        assertEquals(3, addedFilm.getLikes().size());
-        assertEquals(2, addedFilm2.getLikes().size());
+        assertEquals(3, filmStorage.getLikes().get(addedFilm.getId()).size());
+        assertEquals(2, filmStorage.getLikes().get(addedFilm2.getId()).size());
         Collection<Film> popularFilm = filmService.popularFilms(3L);
         assertTrue(popularFilm.contains(addedFilm));
     }
