@@ -1,9 +1,8 @@
-package ru.yandex.practicum.filmorate;
+package ru.yandex.practicum.filmorate.controller;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import ru.yandex.practicum.filmorate.controller.UserController;
 import ru.yandex.practicum.filmorate.exeption.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 
@@ -56,7 +55,7 @@ public class UserControllerTest {
         newUser.setName("Updated User");
         newUser.setBirthday(LocalDate.of(1990, 5, 10));
         System.out.println(userController.allUsers());
-        User updatedUser = userController.updateUser(newUser);
+        User updatedUser = userController.userUpdate(newUser);
 
         assertNotNull(updatedUser);
         assertEquals(newUser.getId(), updatedUser.getId());

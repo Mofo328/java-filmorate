@@ -1,12 +1,12 @@
-package ru.yandex.practicum.filmorate;
+package ru.yandex.practicum.filmorate.controller;
 
-import org.junit.Assert;
+
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import ru.yandex.practicum.filmorate.controller.FilmController;
 import ru.yandex.practicum.filmorate.exeption.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.storage.FilmStorage;
 
 import java.time.LocalDate;
 import java.util.Collection;
@@ -18,7 +18,7 @@ public class FilmControllerTest {
 
 
     @Autowired
-    private FilmController filmController;
+    private FilmStorage filmStorage;
 
     @Test
     public void testFilmAdd() {
@@ -28,7 +28,7 @@ public class FilmControllerTest {
         filmToAdd.setReleaseDate(LocalDate.now());
         filmToAdd.setDuration(120);
 
-        Film addedFilm = filmController.filmAdd(filmToAdd);
+        Film addedFilm = filmStorage.filmAdd(filmToAdd);
 
         assertNotNull(addedFilm);
         assertNotNull(addedFilm.getId());
@@ -47,7 +47,7 @@ public class FilmControllerTest {
         filmToUpdate.setReleaseDate(LocalDate.now());
         filmToUpdate.setDuration(120);
 
-        Film updatedFilm = filmController.filmUpdate(filmToUpdate);
+        Film updatedFilm = filmStorage.filmUpdate(filmToUpdate);
 
         assertNotNull(updatedFilm);
         assertEquals(filmToUpdate.getName(), updatedFilm.getName());
@@ -55,9 +55,9 @@ public class FilmControllerTest {
 
     @Test
     public void testAllFilms() {
-        Collection<Film> films = filmController.allFilms();
+        Collection<Film> films = filmStorage.allFilms();
         assertNotNull(films);
-        Assert.assertTrue(films.isEmpty());
+        assertTrue(films.isEmpty());
     }
 
     @Test
@@ -66,7 +66,7 @@ public class FilmControllerTest {
         filmToAdd.setDescription("Test Description");
         filmToAdd.setReleaseDate(LocalDate.now());
         filmToAdd.setDuration(120);
-        assertThrows(ValidationException.class, () -> filmController.filmAdd(filmToAdd));
+        assertThrows(ValidationException.class, () -> filmStorage.filmAdd(filmToAdd));
     }
 
     @Test
@@ -79,7 +79,7 @@ public class FilmControllerTest {
         filmToAdd.setDescription(description.substring(0, 200));
         filmToAdd.setReleaseDate(LocalDate.now());
         filmToAdd.setDuration(120);
-        assertThrows(ValidationException.class, () -> filmController.filmAdd(filmToAdd));
+        assertThrows(ValidationException.class, () -> filmStorage.filmAdd(filmToAdd));
     }
 
     @Test
@@ -88,7 +88,7 @@ public class FilmControllerTest {
         filmToAdd.setDescription("Test Description");
         filmToAdd.setReleaseDate(LocalDate.of(1894, 12, 28));
         filmToAdd.setDuration(120);
-        assertThrows(ValidationException.class, () -> filmController.filmAdd(filmToAdd));
+        assertThrows(ValidationException.class, () -> filmStorage.filmAdd(filmToAdd));
     }
 
     @Test
@@ -97,7 +97,7 @@ public class FilmControllerTest {
         filmToAdd.setDescription("Test Description");
         filmToAdd.setReleaseDate(LocalDate.of(1894, 12, 28));
         filmToAdd.setDuration(-100);
-        assertThrows(ValidationException.class, () -> filmController.filmAdd(filmToAdd));
+        assertThrows(ValidationException.class, () -> filmStorage.filmAdd(filmToAdd));
     }
 
     @Test
@@ -106,18 +106,18 @@ public class FilmControllerTest {
         filmToAdd.setDescription(null);
         filmToAdd.setReleaseDate(LocalDate.now());
         filmToAdd.setDuration(120);
-        assertThrows(ValidationException.class, () -> filmController.filmAdd(filmToAdd));
+        assertThrows(ValidationException.class, () -> filmStorage.filmAdd(filmToAdd));
 
         Film filmToAdd2 = new Film();
         filmToAdd2.setDescription("Test Description");
         filmToAdd2.setReleaseDate(null);
         filmToAdd2.setDuration(120);
-        assertThrows(ValidationException.class, () -> filmController.filmAdd(filmToAdd2));
+        assertThrows(ValidationException.class, () -> filmStorage.filmAdd(filmToAdd2));
 
         Film filmToAdd3 = new Film();
         filmToAdd3.setDescription("Test Description");
         filmToAdd3.setReleaseDate(LocalDate.now());
         filmToAdd3.setDuration(null);
-        assertThrows(ValidationException.class, () -> filmController.filmAdd(filmToAdd3));
+        assertThrows(ValidationException.class, () -> filmStorage.filmAdd(filmToAdd3));
     }
 }
