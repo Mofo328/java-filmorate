@@ -49,11 +49,12 @@ class UserRepositoryTest {
                 .isPresent()
                 .hasValueSatisfying(user -> {
                     assertThat(user).isNotEmpty();
-                    assertThat(user).hasSize(4);
+                    assertThat(user).hasSize(5);
                     assertThat(user).element(0).hasFieldOrPropertyWithValue("id", 1L);
                     assertThat(user).element(1).hasFieldOrPropertyWithValue("id", 2L);
                     assertThat(user).element(2).hasFieldOrPropertyWithValue("id", 3L);
                     assertThat(user).element(3).hasFieldOrPropertyWithValue("id", 4L);
+                    assertThat(user).element(4).hasFieldOrPropertyWithValue("id", 5L);
                 });
     }
 
