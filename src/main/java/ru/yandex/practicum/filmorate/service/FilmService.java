@@ -4,72 +4,70 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exeption.ConditionsNotMetException;
-import ru.yandex.practicum.filmorate.exeption.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.storage.FilmStorage;
-import ru.yandex.practicum.filmorate.storage.UserStorage;
+import ru.yandex.practicum.filmorate.repository.dao.FilmRepository;
+import ru.yandex.practicum.filmorate.repository.dao.LikeRepository;
 
 import java.util.*;
-import java.util.stream.Collectors;
+
 
 @Service
 @Slf4j
 public class FilmService {
 
-    private final FilmStorage filmStorage;
-    private final UserStorage userStorage;
+    private final FilmRepository filmRepository;
+
+    private final LikeRepository likeRepository;
 
     @Autowired
-    public FilmService(FilmStorage filmStorage, UserStorage userStorage) {
-        this.filmStorage = filmStorage;
-        this.userStorage = userStorage;
+    public FilmService(FilmRepository filmRepository, LikeRepository likeRepository) {
+        this.filmRepository = filmRepository;
+        this.likeRepository = likeRepository;
     }
 
     public Film filmAdd(Film filmRequest) {
-        return filmStorage.filmAdd(filmRequest);
+        log.info("Отправлен ответ Put / films с телом {}", filmRequest);
+        return filmRepository.filmAdd(filmRequest);
     }
 
     public Collection<Film> allFilms() {
-        return filmStorage.allFilms();
+        log.info("Отправлен ответ GET /films");
+        return filmRepository.allFilms();
     }
 
-    public Film filmUpdate(Film newFilm) {
-        return filmStorage.filmUpdate(newFilm);
+    public Film filmUpdate(Film filmUpdate) {
+        log.info("Отправлен ответ Put / films с телом {}", filmUpdate);
+        return filmRepository.filmUpdate(filmUpdate);
     }
 
-    public void filmDelete(Long id) {
-        filmStorage.filmDelete(id);
+    public boolean filmDelete(Long id) {
+        log.info("Фильм удален c ID {} удален", id);
+        return filmRepository.filmDelete(id);
     }
 
-    public void filmLike(Long filmId, Long userId) {
-        Film film = filmStorage.getFilm(filmId);
-        Set<Long> likes = filmStorage.getLikes().get(film.getId());
-        if (likes.contains(userId)) {
-            log.error("Пользователь {} уже поставил лайк фильму {}", userId, filmId);
-            throw new ValidationException("Пользователь уже ставил лайк этому фильму");
+    public Film getFilm(Long id) {
+        Optional<Film> filmOptional = filmRepository.getFilm(id);
+        if (filmOptional.isPresent()) {
+            log.info("Отправлен ответ GET / films с телом {}", filmOptional.get());
+            return filmOptional.get();
+        } else {
+            log.error("Такого фильма не существует");
+            throw new ConditionsNotMetException("Фильма с ID " + id + " не существует");
         }
-        User user = userStorage.getUser(userId);
-        likes.add(user.getId());
-        log.info("Фильму {} был поставлен лайк от пользователя {}", filmId, userId);
-    }
-
-    public void filmLikeRemove(Long filmId, Long userId) {
-        Film film = filmStorage.getFilm(filmId);
-        Set<Long> likes = filmStorage.getLikes().get(filmId);
-        ;
-        User user = userStorage.getUser(userId);
-        if (!likes.remove(user.getId())) {
-            throw new ConditionsNotMetException("Пользователь " + userId + " Не ставил лайк этому фильму");
-        }
-        log.info("У фильма {} был удален лайк от пользователя {}", filmId, userId);
     }
 
     public Collection<Film> popularFilms(Long count) {
         log.info("Было возращено {} популярных фильма", count);
-        return filmStorage.allFilms().stream()
-                .sorted(Comparator.comparingInt(film -> filmStorage.getLikes().get(film.getId()).size()))
-                .limit(count)
-                .collect(Collectors.toList()).reversed();
+        return filmRepository.popularFilms(count);
+    }
+
+    public boolean likeRemove(Long filmId, Long userId) {
+        log.info("У фильма {} был удален лайк от пользователя {}", filmId, userId);
+        return likeRepository.likeRemove(filmId, userId);
+    }
+
+    public boolean addLike(Long filmId, Long userId) {
+        log.info("Фильму {} был поставлен лайк от пользователя {}", filmId, userId);
+        return likeRepository.addLike(filmId, userId);
     }
 }

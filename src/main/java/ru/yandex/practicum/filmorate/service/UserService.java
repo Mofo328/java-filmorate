@@ -1,11 +1,12 @@
 package ru.yandex.practicum.filmorate.service;
 
+
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import ru.yandex.practicum.filmorate.exeption.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.storage.UserStorage;
+import ru.yandex.practicum.filmorate.repository.dao.FriendRepository;
+import ru.yandex.practicum.filmorate.repository.dao.UserRepository;
 
 import java.util.*;
 
@@ -13,63 +14,55 @@ import java.util.*;
 @Slf4j
 public class UserService {
 
-    private final UserStorage userStorage;
+    private final UserRepository userRepository;
+
+    private final FriendRepository friendRepository;
 
     @Autowired
-    public UserService(UserStorage userStorage) {
-        this.userStorage = userStorage;
+    public UserService(UserRepository userRepository, FriendRepository friendRepository) {
+        this.userRepository = userRepository;
+        this.friendRepository = friendRepository;
     }
 
     public User userCreate(User newUser) {
-        return userStorage.userCreate(newUser);
+        log.info("Отправлен ответ Put / users с телом {}", newUser);
+        return userRepository.addUser(newUser);
     }
 
     public Collection<User> allUsers() {
-        return userStorage.allUsers();
+        log.info("Отправлен ответ GET /users");
+        return userRepository.allUsers();
     }
 
     public User userUpdate(User newUser) {
-        return userStorage.userUpdate(newUser);
+        log.info("Отправлен ответ Put / users с телом {}", newUser);
+        return userRepository.updateUser(newUser);
     }
 
-    public void userDelete(Long id) {
-        userStorage.userDelete(id);
+    public boolean userDelete(Long id) {
+        log.info("Пользователь c ID {} удален", id);
+        return userRepository.userDelete(id);
     }
 
-    public void addToFriend(Long userId, Long otherUserId) {
-        User user = userStorage.getUser(userId);
-        User otherUser = userStorage.getUser(otherUserId);
-        if (userStorage.getFriends().get(user.getId()).contains(otherUser)) {
-            log.error("Ошибка при добавлении друга: Пользователи {} и {} уже являются друзьями.", userId, otherUserId);
-            throw new ValidationException("Пользователи уже в друзьях");
-        }
-        userStorage.getFriends().get(user.getId()).add(userStorage.getUser(otherUserId));
-        userStorage.getFriends().get(otherUser.getId()).add(userStorage.getUser(userId));
-        log.info("Пользователь {} добавил в друзья пользователя {}", userId, otherUserId);
+    public boolean addFriend(Long userId, Long friendId) {
+        log.info("Пользователи с ID {},{} теперь друзья", userId, friendId);
+        return friendRepository.addFriend(userId, friendId);
     }
 
-    public void deleteFriend(Long userId, Long friendId) {
-        User user = userStorage.getUser(userId);
-        User friend = userStorage.getUser(friendId);
-        if (userStorage.getFriends().get(user.getId()).remove(friend) && userStorage.getFriends().get(friend.getId()).remove(user)) {
-            log.info("Пользователь {} успешно удалил пользователя {}", userId, friendId);
-        } else {
-            log.warn("Пользователь {} не имел друга с ID {}", userId, friendId);
-        }
+    public boolean friendRemove(Long userId, Long friendId) {
+        log.info("Пользователи с ID {},{} теперь недрузья", userId, friendId);
+        return friendRepository.friendRemove(userId, friendId);
     }
 
-    public List<User> allUserFriends(Long userId) {
-        User user = userStorage.getUser(userId);
-        Set<User> userFriendsSet = userStorage.getFriends().get(user.getId());
-        return new ArrayList<>(userFriendsSet);
+
+    public Collection<User> userFriends(Long userId) {
+        log.info("Отправлен ответ GET /users/friends");
+        return friendRepository.userFriends(userId);
     }
 
-    public List<User> commonFriends(Long userId, Long otherUserId) {
-        List<User> userFriends = allUserFriends(userId);
-        List<User> otherUserFriends = allUserFriends(otherUserId);
-        List<User> commonFriends = new ArrayList<>(userFriends);
-        commonFriends.retainAll(otherUserFriends);
 
-        return commonFriends;
+    public Collection<User> commonFriends(Long userIntersectionId, Long userId) {
+        log.info("Отправлен ответ GET users/friends/common");
+        return friendRepository.commonFriends(userIntersectionId, userId);
     }
 }
