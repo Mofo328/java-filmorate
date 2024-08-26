@@ -17,6 +17,8 @@ import ru.yandex.practicum.filmorate.model.Rating;
 import ru.yandex.practicum.filmorate.repository.dao.FilmRepository;
 import ru.yandex.practicum.filmorate.repository.dao.RatingRepository;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.*;
 
 
@@ -24,8 +26,6 @@ import java.util.*;
 public class JdbcFilmRepository implements FilmRepository {
 
     private final NamedParameterJdbcOperations jdbcTemplate;
-
-
     private final RatingRepository jdbcRatingRepository;
 
     @Autowired
@@ -77,18 +77,8 @@ public class JdbcFilmRepository implements FilmRepository {
         final String sql = "SELECT * FROM films WHERE film_id = :film_id";
         SqlParameterSource parameterSource = new MapSqlParameterSource()
                 .addValue("film_id", id);
-        return Optional.ofNullable(jdbcTemplate.queryForObject(sql, parameterSource, (rs, rowNum) -> {
-            Film film = new Film();
-            film.setId(rs.getLong("film_id"));
-            film.setName(rs.getString("film_name"));
-            film.setDescription(rs.getString("description"));
-            film.setReleaseDate(rs.getDate("released").toLocalDate());
-            film.setDuration(rs.getInt("duration"));
-            Long mpaId = rs.getLong("mpa_id");
-            Optional<Rating> ratingOptional = jdbcRatingRepository.findRatingById(mpaId);
-            ratingOptional.ifPresent(film::setMpa);
-            return addExtraFields(film);
-        }));
+        return Optional.ofNullable(jdbcTemplate.queryForObject(sql, parameterSource, (rs, rowNum) ->
+                addExtraFields(createFilmFromResultSet(rs))));
     }
 
     @Override
@@ -105,18 +95,8 @@ public class JdbcFilmRepository implements FilmRepository {
     public Collection<Film> allFilms() {
         final String sql = "SELECT * FROM films";
         SqlParameterSource parameterSource = new MapSqlParameterSource();
-        return jdbcTemplate.query(sql, parameterSource, (rs, rowNum) -> {
-            Film film = new Film();
-            film.setId(rs.getLong("film_id"));
-            film.setName(rs.getString("film_name"));
-            film.setDescription(rs.getString("description"));
-            film.setReleaseDate(rs.getDate("released").toLocalDate());
-            film.setDuration(rs.getInt("duration"));
-            Long mpaId = rs.getLong("mpa_id");
-            Optional<Rating> ratingOptional = jdbcRatingRepository.findRatingById(mpaId);
-            ratingOptional.ifPresent(film::setMpa);
-            return addExtraFields(film);
-        });
+        return jdbcTemplate.query(sql, parameterSource, (rs, rowNum) ->
+                addExtraFields(createFilmFromResultSet(rs)));
     }
 
     @Override
@@ -129,19 +109,9 @@ public class JdbcFilmRepository implements FilmRepository {
 
         SqlParameterSource parameterSource = new MapSqlParameterSource()
                 .addValue("count", count);
-        return jdbcTemplate.query(sql, parameterSource, (rs, rowNum) -> {
-            Film film = new Film();
-            Rating rating = new Rating();
-            film.setId(rs.getLong("film_id"));
-            film.setName(rs.getString("film_name"));
-            film.setDescription(rs.getString("description"));
-            film.setReleaseDate(rs.getDate("released").toLocalDate());
-            film.setDuration(rs.getInt("duration"));
-            Long mpaId = rs.getLong("mpa_id");
-            Optional<Rating> ratingOptional = jdbcRatingRepository.findRatingById(mpaId);
-            ratingOptional.ifPresent(film::setMpa);
-            return addExtraFields(film);
-        });
+        return jdbcTemplate.query(sql, parameterSource, (rs, rowNum) ->
+                addExtraFields(createFilmFromResultSet(rs))
+        );
     }
 
     private Film addExtraFields(Film film) {
@@ -149,12 +119,13 @@ public class JdbcFilmRepository implements FilmRepository {
         Long mpaId = film.getMpa().getId();
         checkCorrectMpa(mpaId);
         if (film.getGenres() != null) {
-            film.getGenres().forEach(genre -> filmGenresAdd(filmId, genre.getId()));
+            List<Long> genreId = film.getGenres().stream().map(Genre::getId).toList();
+            filmGenresAdd(filmId, genreId);
         }
         Optional<Rating> filmMpa = jdbcRatingRepository.findRatingById(mpaId);
-        Set<Genre> filmGenres = new LinkedHashSet<>(getAllFilmGenresById(filmId));
+        LinkedHashSet<Genre> filmGenres = new LinkedHashSet<>(getAllFilmGenresById(filmId));
         film.setMpa(filmMpa.orElseThrow(() -> new ConditionsNotMetException("Рейтинг с ID " + mpaId + " не найден")));
-        film.setGenres((LinkedHashSet<Genre>) filmGenres);
+        film.setGenres(filmGenres);
         return film;
     }
 
@@ -165,13 +136,20 @@ public class JdbcFilmRepository implements FilmRepository {
         return jdbcTemplate.update(sql, parameterSource) > 0;
     }
 
-    private void filmGenresAdd(Long filmId, Long genreId) {
-        checkCorrectGenre(genreId);
-        final String sql = "INSERT INTO film_genres (film_id, genre_id) VALUES (:film_id, :genre_id)";
-        SqlParameterSource parameterSource = new MapSqlParameterSource()
-                .addValue("film_id", filmId)
-                .addValue("genre_id", genreId);
-        jdbcTemplate.update(sql, parameterSource);
+    public void filmGenresAdd(Long filmId, List<Long> genreIds) {
+        if (genreIds == null || genreIds.isEmpty()) {
+            return;
+        }
+        String sql = "INSERT INTO film_genres (film_id, genre_id) VALUES (:filmId, :genreId)";
+        List<SqlParameterSource> batchValues = new ArrayList<>(genreIds.size());
+        for (Long genreId : genreIds) {
+            checkCorrectGenre(genreId);
+            MapSqlParameterSource parameters = new MapSqlParameterSource();
+            parameters.addValue("filmId", filmId);
+            parameters.addValue("genreId", genreId);
+            batchValues.add(parameters);
+        }
+        jdbcTemplate.batchUpdate(sql, batchValues.toArray(new SqlParameterSource[genreIds.size()]));
     }
 
     private List<Genre> getAllFilmGenresById(Long id) {
@@ -188,6 +166,19 @@ public class JdbcFilmRepository implements FilmRepository {
             genre.setName(rs.getString("genre_name"));
             return genre;
         });
+    }
+
+    private Film createFilmFromResultSet(ResultSet rs) throws SQLException {
+        Film film = new Film();
+        film.setId(rs.getLong("film_id"));
+        film.setName(rs.getString("film_name"));
+        film.setDescription(rs.getString("description"));
+        film.setReleaseDate(rs.getDate("released").toLocalDate());
+        film.setDuration(rs.getInt("duration"));
+        Long mpaId = rs.getLong("mpa_id");
+        Optional<Rating> ratingOptional = jdbcRatingRepository.findRatingById(mpaId);
+        ratingOptional.ifPresent(film::setMpa);
+        return film;
     }
 
     private void checkCorrectGenre(Long id) {

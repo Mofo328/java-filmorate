@@ -10,6 +10,8 @@ import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.repository.dao.UserRepository;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.Collection;
 import java.util.Optional;
 
@@ -65,30 +67,25 @@ public class JbbcUserRepository implements UserRepository {
     public Collection<User> allUsers() {
         final String sql = "SELECT * FROM users";
         SqlParameterSource parameterSource = new MapSqlParameterSource();
-        return jdbcTemplate.query(sql, parameterSource, (rs, rowNum) -> {
-            User user = new User();
-            user.setId(rs.getLong("user_id"));
-            user.setName(rs.getString("user_name"));
-            user.setLogin(rs.getString("login"));
-            user.setEmail(rs.getString("email"));
-            user.setBirthday(rs.getDate("birthday").toLocalDate());
-            return user;
-        });
+        return jdbcTemplate.query(sql, parameterSource,
+                (rs, rowNum) -> createUserFromResultSet(rs));
     }
 
     public Optional<User> userGet(Long id) {
         final String sql = "SELECT * FROM users WHERE user_id = :user_id";
         SqlParameterSource parameterSource = new MapSqlParameterSource()
                 .addValue("user_id", id);
-        return Optional.ofNullable(jdbcTemplate.queryForObject(sql, parameterSource, (rs, rowNum) -> {
-            User user = new User();
-            user.setId(rs.getLong("user_id"));
-            user.setName(rs.getString("user_name"));
-            user.setLogin(rs.getString("login"));
-            user.setEmail(rs.getString("email"));
-            user.setBirthday(rs.getDate("birthday").toLocalDate());
-            return user;
-        }));
+        return Optional.ofNullable(jdbcTemplate.queryForObject(sql, parameterSource,
+                (rs, rowNum) -> createUserFromResultSet(rs)));
     }
 
+    private User createUserFromResultSet(ResultSet rs) throws SQLException {
+        User user = new User();
+        user.setId(rs.getLong("user_id"));
+        user.setName(rs.getString("user_name"));
+        user.setLogin(rs.getString("login"));
+        user.setEmail(rs.getString("email"));
+        user.setBirthday(rs.getDate("birthday").toLocalDate());
+        return user;
+    }
 }

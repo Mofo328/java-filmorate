@@ -1,7 +1,6 @@
 package ru.yandex.practicum.filmorate.repository.daoimpl;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
@@ -27,14 +26,8 @@ public class JdbcGenreRepository implements GenreRepository {
         final String sql = "SELECT genre_id, genre_name AS name FROM genres WHERE genre_id = :id";
         SqlParameterSource parameterSource = new MapSqlParameterSource()
                 .addValue("id", id);
-        try {
-            Genre genre = jdbcTemplate.queryForObject(sql, parameterSource, (rs, rowNum) ->
-                    new Genre(rs.getLong("genre_id"), rs.getString("genre_name"))
-            );
-            return Optional.of(genre);
-        } catch (EmptyResultDataAccessException ignored) {
-            return Optional.empty();
-        }
+        return Optional.ofNullable(jdbcTemplate.queryForObject(sql, parameterSource, (rs, rowNum) ->
+                new Genre(rs.getLong("genre_id"), rs.getString("genre_name"))));
     }
 
     @Override

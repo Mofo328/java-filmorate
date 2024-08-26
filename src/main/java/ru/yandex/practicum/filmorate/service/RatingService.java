@@ -1,13 +1,13 @@
 package ru.yandex.practicum.filmorate.service;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exeption.ConditionsNotMetException;
 import ru.yandex.practicum.filmorate.model.Rating;
 import ru.yandex.practicum.filmorate.repository.dao.RatingRepository;
 
 import java.util.List;
-import java.util.Optional;
 
 
 @Service
@@ -21,12 +21,10 @@ public class RatingService {
     }
 
     public Rating findRatingById(Long id) {
-        Optional<Rating> ratingOptional = ratingRepository.findRatingById(id);
-        if (ratingOptional.isPresent()) {
-            log.info("Отправлен ответ GET /mpa с телом {}", ratingOptional.get());
-            return ratingOptional.get();
-        } else {
-            log.error("Такого mpa не существует");
+        try {
+            return ratingRepository.findRatingById(id).orElseThrow(() ->
+                    (new ConditionsNotMetException("Mpa с ID " + id + " не существует")));
+        } catch (EmptyResultDataAccessException ignored) {
             throw new ConditionsNotMetException("Mpa с ID " + id + " не существует");
         }
     }

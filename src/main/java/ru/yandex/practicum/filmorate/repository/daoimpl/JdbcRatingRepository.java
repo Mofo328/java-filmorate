@@ -1,7 +1,6 @@
 package ru.yandex.practicum.filmorate.repository.daoimpl;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
@@ -28,14 +27,8 @@ public class JdbcRatingRepository implements RatingRepository {
         final String sql = "SELECT mpa_id, mpa_name AS name FROM mpa WHERE mpa_id = :id";
         SqlParameterSource parameterSource = new MapSqlParameterSource()
                 .addValue("id", id);
-        try {
-            Rating rating = jdbc.queryForObject(sql, parameterSource, (rs, rowNum) ->
-                    new Rating(rs.getLong("mpa_id"), rs.getString("mpa_name"))
-            );
-            return Optional.of(rating);
-        } catch (EmptyResultDataAccessException ignored) {
-            return Optional.empty();
-        }
+        return Optional.ofNullable(jdbc.queryForObject(sql, parameterSource, (rs, rowNum) ->
+                new Rating(rs.getLong("mpa_id"), rs.getString("mpa_name"))));
     }
 
     @Override

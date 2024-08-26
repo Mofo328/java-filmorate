@@ -3,7 +3,9 @@ package ru.yandex.practicum.filmorate.service;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.exeption.ConditionsNotMetException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.repository.dao.FriendRepository;
 import ru.yandex.practicum.filmorate.repository.dao.UserRepository;
@@ -64,5 +66,15 @@ public class UserService {
     public Collection<User> commonFriends(Long userIntersectionId, Long userId) {
         log.info("Отправлен ответ GET users/friends/common");
         return friendRepository.commonFriends(userIntersectionId, userId);
+    }
+
+    public User userGet(Long id) {
+        log.info("Запрос пользователя с ID: {}", id);
+        try {
+            return userRepository.userGet(id)
+                    .orElseThrow(() -> new ConditionsNotMetException("Пользователя с ID " + id + " не существует"));
+        } catch (EmptyResultDataAccessException ignored) {
+            throw new ConditionsNotMetException("Пользователя с ID " + id + " не существует");
+        }
     }
 }

@@ -130,8 +130,6 @@ public class ValidateService {
         SqlParameterSource friendCheckParams = new MapSqlParameterSource()
                 .addValue("user_id", userId)
                 .addValue("friend_id", friendId);
-        checkCorrectUser(userId);
-        checkCorrectUser(friendId);
         try {
             if (jdbcTemplate.queryForObject(friendCheckSql, friendCheckParams, Integer.class) > 0) {
                 throw new ValidationException("Пользователи уже являются друзьями: " + userId + " и " + friendId);

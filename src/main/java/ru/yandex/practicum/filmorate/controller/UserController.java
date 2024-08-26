@@ -24,20 +24,22 @@ public class UserController {
 
     @PutMapping("{userId}/friends/{friendId}")
     public void addToFriend(@PathVariable Long userId, @PathVariable Long friendId) {
+        userService.userGet(userId);
+        userService.userGet(friendId);
         validateService.checkAlreadyFriend(userId, friendId);
         userService.addFriend(userId, friendId);
     }
 
     @DeleteMapping("{userId}/friends/{friendId}")
     public void deleteFriend(@PathVariable Long userId, @PathVariable Long friendId) {
-        validateService.checkCorrectUser(userId);
-        validateService.checkCorrectUser(friendId);
+        userService.userGet(userId);
+        userService.userGet(friendId);
         userService.friendRemove(userId, friendId);
     }
 
     @GetMapping("{userId}/friends")
     public Collection<User> allUserFriends(@PathVariable Long userId) {
-        validateService.checkCorrectUser(userId);
+        userService.userGet(userId);
         return userService.userFriends(userId);
     }
 
