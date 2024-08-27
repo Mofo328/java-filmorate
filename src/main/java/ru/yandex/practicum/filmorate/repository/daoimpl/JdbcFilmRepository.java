@@ -107,8 +107,8 @@ public class JdbcFilmRepository implements FilmRepository {
         SqlParameterSource parameterSource = new MapSqlParameterSource();
         Collection<Film> films = jdbcTemplate.query(sql, parameterSource, (rs, rowNum) ->
                 createFilmFromResultSet(rs));
+        Map<Long, LinkedHashSet<Genre>> filmGenresMap = getAllGenresForFilms();
         for (Film film : films) {
-            Map<Long, LinkedHashSet<Genre>> filmGenresMap = getAllGenresForFilms();
             film.setGenres(filmGenresMap.getOrDefault(film.getId(), new LinkedHashSet<>()));
         }
         return films;
@@ -128,8 +128,8 @@ public class JdbcFilmRepository implements FilmRepository {
                 .addValue("count", count);
         Collection<Film> films = jdbcTemplate.query(sql, parameterSource, (rs, rowNum) ->
                 createFilmFromResultSet(rs));
+        Map<Long, LinkedHashSet<Genre>> filmGenresMap = getAllGenresForFilms();
         for (Film film : films) {
-            Map<Long, LinkedHashSet<Genre>> filmGenresMap = getAllGenresForFilms();
             film.setGenres(filmGenresMap.getOrDefault(film.getId(), new LinkedHashSet<>()));
         }
         return films;
