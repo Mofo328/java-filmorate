@@ -105,8 +105,13 @@ public class JdbcFilmRepository implements FilmRepository {
                 " FROM films f " +
                 "JOIN mpa m ON f.mpa_id = m.mpa_id ";
         SqlParameterSource parameterSource = new MapSqlParameterSource();
-        return jdbcTemplate.query(sql, parameterSource, (rs, rowNum) ->
+        Collection<Film> films = jdbcTemplate.query(sql, parameterSource, (rs, rowNum) ->
                 createFilmFromResultSet(rs));
+        for (Film film : films) {
+            Map<Long, LinkedHashSet<Genre>> filmGenresMap = getAllGenresForFilms();
+            film.setGenres(filmGenresMap.getOrDefault(film.getId(), new LinkedHashSet<>()));
+        }
+        return films;
     }
 
     @Override
@@ -121,9 +126,13 @@ public class JdbcFilmRepository implements FilmRepository {
                 "LIMIT :count";
         SqlParameterSource parameterSource = new MapSqlParameterSource()
                 .addValue("count", count);
-        return jdbcTemplate.query(sql, parameterSource, (rs, rowNum) ->
-                createFilmFromResultSet(rs)
-        );
+        Collection<Film> films = jdbcTemplate.query(sql, parameterSource, (rs, rowNum) ->
+                createFilmFromResultSet(rs));
+        for (Film film : films) {
+            Map<Long, LinkedHashSet<Genre>> filmGenresMap = getAllGenresForFilms();
+            film.setGenres(filmGenresMap.getOrDefault(film.getId(), new LinkedHashSet<>()));
+        }
+        return films;
     }
 
     private Film addExtraFields(Film film) {
