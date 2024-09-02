@@ -1,39 +1,40 @@
 package ru.yandex.practicum.filmorate.controller;
 
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.FilmService;
+import ru.yandex.practicum.filmorate.service.ValidateService;
 
 import java.util.Collection;
 
 
 @RestController
 @RequestMapping("/films")
-@Slf4j
 public class FilmController {
 
     private final FilmService filmService;
 
-    @Autowired
-    public FilmController(FilmService filmService) {
+    private final ValidateService validateService;
+
+    public FilmController(FilmService filmService, ValidateService validateService) {
         this.filmService = filmService;
+        this.validateService = validateService;
     }
 
     @PostMapping
     public Film filmAdd(@RequestBody Film filmRequest) {
+        validateService.validateFilmInput(filmRequest);
         return filmService.filmAdd(filmRequest);
     }
 
     @PutMapping("{filmId}/like/{userId}")
-    public void filmLike(@PathVariable Long filmId, @PathVariable Long userId) {
-        filmService.filmLike(filmId, userId);
+    public boolean filmLike(@PathVariable Long filmId, @PathVariable Long userId) {
+        return filmService.addLike(filmId, userId);
     }
 
     @DeleteMapping("{filmId}/like/{userId}")
-    public void filmLikeRemove(@PathVariable Long filmId, @PathVariable Long userId) {
-        filmService.filmLikeRemove(filmId, userId);
+    public boolean filmLikeRemove(@PathVariable Long filmId, @PathVariable Long userId) {
+        return filmService.likeRemove(filmId, userId);
     }
 
     @GetMapping("/popular")
@@ -43,6 +44,7 @@ public class FilmController {
 
     @PutMapping
     public Film filmUpdate(@RequestBody Film newFilm) {
+        validateService.validateFilmUpdate(newFilm);
         return filmService.filmUpdate(newFilm);
     }
 
@@ -51,8 +53,13 @@ public class FilmController {
         return filmService.allFilms();
     }
 
+    @GetMapping(value = {"{filmId}"})
+    public Film filmByID(@PathVariable Long filmId) {
+        return filmService.getFilm(filmId);
+    }
+
     @DeleteMapping(value = {"{filmId}"})
-    public void filmDelete(@PathVariable Long filmId) {
-        filmService.filmDelete(filmId);
+    public boolean filmDelete(@PathVariable Long filmId) {
+        return filmService.filmDelete(filmId);
     }
 }

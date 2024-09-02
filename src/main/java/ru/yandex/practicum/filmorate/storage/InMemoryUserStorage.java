@@ -26,7 +26,7 @@ public class InMemoryUserStorage implements UserStorage {
         validateUserInput(newUser);
         newUser.setId(getNextId());
         users.put(newUser.getId(), newUser);
-        friends.put(newUser.getId(),new HashSet<>());
+        friends.put(newUser.getId(), new HashSet<>());
         log.info("Отправлен ответ Post /users с телом {}", newUser);
         return newUser;
     }

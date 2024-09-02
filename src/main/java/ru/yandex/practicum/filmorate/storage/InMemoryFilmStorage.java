@@ -17,7 +17,7 @@ public class InMemoryFilmStorage implements FilmStorage {
     private final Map<Long, Film> films = new HashMap<>();
 
     @Getter
-    private final Map<Long,Set<Long>> likes = new HashMap<>();
+    private final Map<Long, Set<Long>> likes = new HashMap<>();
 
     private long currentId;
 
@@ -74,8 +74,7 @@ public class InMemoryFilmStorage implements FilmStorage {
         Film film = new Film();
         if (films.get(filmRequest.getId()) == null) {
             film.setId(getNextId());
-        }
-        if (films.get(filmRequest.getId()) != null) {
+        } else {
             film.setId(filmRequest.getId());
         }
         film.setName(filmRequest.getName());
